@@ -99,5 +99,6 @@ func main() {
 
 	} else {
 		fmt.Fprintln(os.Stderr, "You already have the latest dump")
+		os.Exit(66);
 	}
 }
