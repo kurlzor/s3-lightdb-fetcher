@@ -39,15 +39,17 @@ func main() {
 		fmt.Printf("%s", err)
 	}
 
-	dumps := make([]string, 0)
+	prefix := os.Getenv("S3_FETCHER_DUMP_PREFIX")
+
+	s3Dumps := make([]string, 0)
 
 	for _, key := range resp.Contents {
-		if strings.Contains(*key.Key, os.Getenv("S3_FETCHER_DUMP_PREFIX")) {
-			dumps = append(dumps, *key.Key)
+		if strings.Contains(*key.Key, prefix) {
+			s3Dumps = append(s3Dumps, *key.Key)
 		}
 	}
 
-	latestAvailableDump := dumps[len(dumps)-1]
+	latestAvailableDump := s3Dumps[len(s3Dumps)-1]
 
 	files, err := ioutil.ReadDir(os.Args[1])
 	if err != nil {
@@ -55,9 +57,17 @@ func main() {
 		os.Exit(1)
 	}
 
+	localDumps := make([]string, 0)
+
+	for _, file := range files {
+		if strings.HasPrefix(file.Name(), prefix) {
+			localDumps = append(localDumps, file.Name())
+		}
+	}
+
 	currentDump := ""
-	if len(files) > 0 {
-		currentDump = files[len(files)-1].Name()
+	if len(localDumps) > 0 {
+		currentDump = localDumps[len(localDumps)-1]
 		fmt.Fprintf(os.Stderr, "Current dump: %s\n", currentDump);
 	} else {
 		currentDump = ""
